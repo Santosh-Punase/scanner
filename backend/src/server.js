@@ -6,9 +6,13 @@ const { getNseSymbols } = require('./data/symbols');
 const { getQuote, getQuotes, getHistorical } = require('./data/ohlc');
 const { listStrategies } = require('./strategies');
 const { runScan } = require('./services/scanner');
+const { isAuthEnabled, login, authMiddleware, adminMiddleware, isAdmin } = require('./auth');
+const { logger, readRecent } = require('./usage');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+app.set('trust proxy', true); // honour X-Forwarded-For from Render/Vercel/etc.
 
 // CORS: allow all by default; restrict by setting CORS_ORIGIN to a comma-separated list.
 const corsOrigin = process.env.CORS_ORIGIN
@@ -17,9 +21,37 @@ const corsOrigin = process.env.CORS_ORIGIN
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
+// ---- Public endpoints (no auth) ----
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'scanner-backend', time: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    service: 'scanner-backend',
+    time: new Date().toISOString(),
+    authRequired: isAuthEnabled(),
+  });
 });
+
+// Login: returns a signed token for use in Authorization: Bearer <token>.
+app.post('/api/auth/login', (req, res) => {
+  const { name, code } = req.body || {};
+  const r = login(name, code);
+  if (!r.ok) return res.status(401).json({ error: r.error });
+  res.json({ token: r.token, name: r.user?.name || name || 'guest', isAdmin: isAdmin(r.user) });
+});
+
+// Whoami: validates a token and reports admin status.
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+  res.json({ name: req.user.name, isAdmin: isAdmin(req.user) });
+});
+
+// ---- Protected endpoints below ----
+app.use('/api', (req, res, next) => {
+  // Skip auth for already-handled public routes
+  const open = ['/health', '/auth/login', '/auth/me'];
+  if (open.some((p) => req.path === p)) return next();
+  return authMiddleware(req, res, next);
+});
+app.use('/api', logger);
 
 // List all NSE equity symbols (cached for 24h, falls back to seed list).
 app.get('/api/symbols', async (req, res) => {
@@ -120,6 +152,7 @@ async function handleScan(req, res) {
     }
 
     const result = await runScan({ strategy, params, limit, concurrency, symbols });
+    res.locals.scanResult = { matched: result.matched, scanned: result.scanned };
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -128,6 +161,13 @@ async function handleScan(req, res) {
 
 app.get('/api/scan', handleScan);
 app.post('/api/scan', handleScan);
+
+// ---- Admin: usage log viewer ----
+app.get('/api/usage', adminMiddleware, (req, res) => {
+  const limit = Math.max(1, Math.min(2000, parseInt(req.query.limit, 10) || 200));
+  const entries = readRecent(limit);
+  res.json({ count: entries.length, entries });
+});
 
 app.listen(PORT, () => {
   console.log(`Scanner backend listening on http://localhost:${PORT}`);

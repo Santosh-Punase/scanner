@@ -14,3 +14,9 @@ services:
         value: 20
       - key: CORS_ORIGIN
         sync: false   # set this in the Render dashboard to your frontend URL
+      - key: ACCESS_CODE
+        sync: false   # shared passcode users must enter on login
+      - key: AUTH_SECRET
+        generateValue: true   # Render auto-generates a long random secret
+      - key: ADMIN_NAMES
+        sync: false   # comma-separated names allowed to view /api/usage
