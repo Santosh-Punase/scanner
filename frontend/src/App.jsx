@@ -150,6 +150,9 @@ export default function App() {
           <h1>NSE Stock Scanner</h1>
           <div className="subtitle">Scan Indian NSE equities with rule-based strategies</div>
         </div>
+      <div className="disclaimer">
+        ⚠ This is for research/education only. Not investment advice.
+      </div>
         <div className="status">
           <span className={`dot ${health?.status === 'ok' ? 'good' : 'bad'}`} />
           backend {health?.status === 'ok' ? 'online' : 'offline'}

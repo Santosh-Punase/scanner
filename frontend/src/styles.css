@@ -41,6 +41,16 @@ header h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01e
 .dot.good { background: var(--good); box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
 .dot.bad  { background: var(--bad);  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
 
+.disclaimer {
+  background: rgba(245, 158, 11, 0.08);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+  color: #f5b041;
+  text-align: center;
+  font-size: 12px;
+  padding: 6px 16px;
+  letter-spacing: 0.02em;
+}
+
 main {
   display: grid;
   grid-template-columns: 340px 1fr;
