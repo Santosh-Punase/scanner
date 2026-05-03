@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { getMeta } from './strategyMeta';
 import { fmtNum, fmtInt, fmtCompact, toCsv, downloadCsv } from './format';
+import { getUser, clearSession } from './session';
+import Login from './Login';
+import UsageDrawer from './UsageDrawer';
 
 const UNIVERSE_PRESETS = [
   { value: 50,   label: 'Top 50 (fastest, ~10s)' },
@@ -11,6 +14,9 @@ const UNIVERSE_PRESETS = [
 ];
 
 export default function App() {
+  const [user, setUser] = useState(getUser());
+  const [authRequired, setAuthRequired] = useState(false);
+  const [showUsage, setShowUsage] = useState(false);
   const [health, setHealth] = useState(null);
   const [strategies, setStrategies] = useState([]);
   const [strategyKey, setStrategyKey] = useState('ma_crossover');
@@ -29,7 +35,14 @@ export default function App() {
   const strategyDef = strategies.find((s) => s.key === strategyKey);
 
   useEffect(() => {
-    api.health().then(setHealth).catch(() => setHealth({ status: 'down' }));
+    api.health().then((h) => {
+      setHealth(h);
+      setAuthRequired(!!h.authRequired);
+    }).catch(() => setHealth({ status: 'down' }));
+  }, []);
+
+  useEffect(() => {
+    if (!user) return; // wait until logged in to call protected endpoints
     api.strategies().then((d) => {
       setStrategies(d.strategies);
       const first = d.strategies.find((s) => s.key === 'ma_crossover') || d.strategies[0];
@@ -37,8 +50,8 @@ export default function App() {
         setStrategyKey(first.key);
         setParams({ ...first.defaults });
       }
-    });
-  }, []);
+    }).catch((e) => console.warn('strategies failed:', e.message));
+  }, [user]);
 
   useEffect(() => {
     if (!running) return;
@@ -145,6 +158,12 @@ export default function App() {
 
   return (
     <div className="app">
+      {!user && (
+        <Login authRequired={authRequired} onLogin={() => setUser(getUser())} />
+      )}
+      {showUsage && user?.isAdmin && (
+        <UsageDrawer onClose={() => setShowUsage(false)} />
+      )}
       <header>
         <div>
           <h1>NSE Stock Scanner</h1>
@@ -156,6 +175,30 @@ export default function App() {
         <div className="status">
           <span className={`dot ${health?.status === 'ok' ? 'good' : 'bad'}`} />
           backend {health?.status === 'ok' ? 'online' : 'offline'}
+          {user && (
+            <>
+              <span style={{ marginLeft: 14, color: 'var(--text)' }}>
+                👤 <strong>{user.name}</strong>
+                {user.isAdmin && <span className="tag bullish" style={{ marginLeft: 6 }}>admin</span>}
+              </span>
+              {user.isAdmin && (
+                <button
+                  className="secondary"
+                  style={{ marginLeft: 10, padding: '4px 10px', fontSize: 12 }}
+                  onClick={() => setShowUsage(true)}
+                >
+                  Usage log
+                </button>
+              )}
+              <button
+                className="secondary"
+                style={{ marginLeft: 6, padding: '4px 10px', fontSize: 12 }}
+                onClick={() => { clearSession(); setUser(null); }}
+              >
+                Sign out
+              </button>
+            </>
+          )}
         </div>
       </header>
 
