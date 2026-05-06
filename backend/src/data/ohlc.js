@@ -35,6 +35,19 @@ async function getQuotes(yahooSymbols) {
  * Fetch historical daily OHLCV candles between two dates.
  * @param {string} yahooSymbol e.g. "RELIANCE.NS"
  * @param {object} opts { period1, period2, interval }
+ * 
+ * For yahooFinance.chart() (which getHistorical wraps), the interval option accepts:
+ *  1m, 2m, 5m, 15m, 30m, 60m, 90m — intraday minutes
+ *  1h — hourly
+ *  1d — daily (default here)
+ *  5d — 5-day
+ *  1wk — weekly
+ *  1mo — monthly
+ *  3mo — quarterly
+ * Notes/caveats from Yahoo:
+ *
+ * Intraday intervals (1m–90m, 1h) are only available for a limited recent range (roughly the last 60 days, and 1m only ~7 days).
+ * For long-range historical scans across many symbols, stick with 1d, 1wk, or 1mo.
  */
 async function getHistorical(yahooSymbol, opts = {}) {
   const period2 = opts.period2 || new Date();
