@@ -16,6 +16,26 @@ function sma(values, period) {  const out = new Array(values.length).fill(null);
 }
 
 /**
+ * Exponential Moving Average. Seeds with SMA of the first `period` values
+ * (standard convention) then applies the EMA recurrence with k = 2/(period+1).
+ * Returns array aligned with input; positions before warm-up are null.
+ */
+function ema(values, period) {
+  const out = new Array(values.length).fill(null);
+  if (period <= 0 || values.length < period) return out;
+  const k = 2 / (period + 1);
+  let sum = 0;
+  for (let i = 0; i < period; i++) sum += values[i];
+  let prev = sum / period;
+  out[period - 1] = prev;
+  for (let i = period; i < values.length; i++) {
+    prev = values[i] * k + prev * (1 - k);
+    out[i] = prev;
+  }
+  return out;
+}
+
+/**
  * Wilder's RSI. Returns array aligned with `closes`, with nulls before
  * `period` bars of warm-up.
  */
@@ -81,4 +101,4 @@ function lastCrossover(fast, slow, lookback = 5) {
   return { type: 'none', barsAgo: null };
 }
 
-module.exports = { sma, rsi, rollingMaxPrior, lastCrossover };
+module.exports = { sma, ema, rsi, rollingMaxPrior, lastCrossover };

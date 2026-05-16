@@ -6,6 +6,12 @@ function smaValue(r, idx) {
   return r[keys[idx]];
 }
 
+function emaValue(r, idx) {
+  const keys = Object.keys(r).filter((k) => /^ema\d+$/.test(k))
+    .sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)));
+  return r[keys[idx]];
+}
+
 function rsiClass(v) {
   if (v == null) return '';
   if (v >= 70) return 'rsi-hot';
@@ -25,6 +31,33 @@ const COLUMN_DEFS = {
       value: (r) => smaValue(r, 1),
       render: (r) => <span className="mono">{fmtNum(smaValue(r, 1))}</span>,
       sortValue: (r) => smaValue(r, 1) },
+    { key: 'crossover', label: 'Signal',
+      render: (r) => <span className={`tag ${r.crossover}`}>{r.crossover}</span>,
+      sortValue: (r) => r.crossover },
+    { key: 'barsAgo', label: 'Bars Ago', align: 'right',
+      render: (r) => <span className="mono">{r.barsAgo}</span>,
+      sortValue: (r) => r.barsAgo },
+    { key: 'chart', label: '', sortable: false,
+      render: (r) => <a className="link" href={`https://www.tradingview.com/chart/?symbol=NSE:${r.symbol}`} target="_blank" rel="noreferrer">chart ↗</a> },
+  ],
+  ema_crossover: [
+    { key: 'symbol', label: 'Symbol', render: (r) => <strong>{r.symbol}</strong>, sortValue: (r) => r.symbol },
+    { key: 'close',  label: 'Close',  align: 'right', render: (r) => <span className="mono">₹{fmtNum(r.close)}</span>, sortValue: (r) => r.close },
+    { key: 'fast',   label: 'Fast EMA', align: 'right',
+      value: (r) => emaValue(r, 0),
+      render: (r) => <span className="mono">{fmtNum(emaValue(r, 0))}</span>,
+      sortValue: (r) => emaValue(r, 0) },
+    { key: 'slow',   label: 'Slow EMA', align: 'right',
+      value: (r) => emaValue(r, 1),
+      render: (r) => <span className="mono">{fmtNum(emaValue(r, 1))}</span>,
+      sortValue: (r) => emaValue(r, 1) },
+    { key: 'trend',  label: 'Trend EMA', align: 'right',
+      value: (r) => emaValue(r, 2),
+      render: (r) => {
+        const v = emaValue(r, 2);
+        return v != null ? <span className="mono muted">{fmtNum(v)}</span> : <span className="muted">—</span>;
+      },
+      sortValue: (r) => emaValue(r, 2) },
     { key: 'crossover', label: 'Signal',
       render: (r) => <span className={`tag ${r.crossover}`}>{r.crossover}</span>,
       sortValue: (r) => r.crossover },

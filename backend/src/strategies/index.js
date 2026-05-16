@@ -1,4 +1,5 @@
 const { maCrossover } = require('./maCrossover');
+const { emaCrossover } = require('./emaCrossover');
 const { volumeSurge } = require('./volumeSurge');
 const { rsiBreakout } = require('./rsiBreakout');
 const { rsiDivergence } = require('./rsiDivergence');
@@ -17,6 +18,22 @@ const STRATEGIES = {
     description:
       'Moving-average crossover (Golden / Death cross). Matches when SMA(fast) ' +
       'crosses SMA(slow) within `lookback` bars in the requested direction.',
+  },
+  ema_crossover: {
+    run: emaCrossover,
+    defaults: {
+      fast: 20,
+      slow: 50,
+      lookback: 3,
+      side: 'bullish',
+      trendFilter: true,
+      trendPeriod: 200,
+    },
+    minHistoryDays: (p = {}) =>
+      Math.max(p.slow ?? 50, p.trendFilter === false ? 0 : (p.trendPeriod ?? 200)) + 30,
+    description:
+      'EMA crossover with optional long-term trend filter. Faster and more ' +
+      'responsive than SMA; the trend filter (close vs EMA200) avoids whipsaws.',
   },
   volume_surge: {
     run: volumeSurge,

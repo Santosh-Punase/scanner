@@ -18,6 +18,7 @@ export default function App() {
   const [params, setParams] = useState({});
   const [limit, setLimit] = useState(200);
   const [concurrency, setConcurrency] = useState(10);
+  const [interval, setInterval_] = useState('1d');
   const [symbolsMode, setSymbolsMode] = useState('universe');
   const [symbols, setSymbols] = useState('');
   const [running, setRunning] = useState(false);
@@ -78,6 +79,7 @@ export default function App() {
         params,
         limit: Number(limit),
         concurrency: Number(concurrency),
+        interval,
       };
       if (symbolsMode === 'custom') {
         const list = symbols.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
@@ -127,6 +129,8 @@ export default function App() {
           setLimit={setLimit}
           concurrency={concurrency}
           setConcurrency={setConcurrency}
+          interval={interval}
+          setInterval={setInterval_}
           running={running}
           elapsed={elapsed}
           onRun={runScan}

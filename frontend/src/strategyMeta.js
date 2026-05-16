@@ -24,6 +24,31 @@ export const STRATEGY_META = {
                   ] },
     },
   },
+  ema_crossover: {
+    title: 'EMA Crossover',
+    summary:
+      'Faster, more responsive cousin of the MA crossover. Optional EMA(200) trend filter only signals in the direction of the long-term trend, cutting whipsaws.',
+    presets: [
+      { name: 'Swing 20/50 (with trend)',  params: { fast: 20, slow: 50,  lookback: 3, side: 'bullish', trendFilter: true,  trendPeriod: 200 } },
+      { name: 'Fast 9/21 (with trend)',    params: { fast: 9,  slow: 21,  lookback: 3, side: 'bullish', trendFilter: true,  trendPeriod: 200 } },
+      { name: 'Positional 50/100',         params: { fast: 50, slow: 100, lookback: 5, side: 'bullish', trendFilter: true,  trendPeriod: 200 } },
+      { name: 'Bearish 20/50',             params: { fast: 20, slow: 50,  lookback: 3, side: 'bearish', trendFilter: true,  trendPeriod: 200 } },
+      { name: 'No trend filter',           params: { fast: 20, slow: 50,  lookback: 3, side: 'bullish', trendFilter: false, trendPeriod: 200 } },
+    ],
+    fields: {
+      fast:        { label: 'Fast EMA period', help: 'Shorter EMA length.', min: 2 },
+      slow:        { label: 'Slow EMA period', help: 'Longer EMA length.',  min: 5 },
+      lookback:    { label: 'Lookback (bars)', help: 'How recent the crossover must be.', min: 1, max: 60 },
+      side:        { label: 'Direction',       help: 'Match bullish, bearish, or any cross.',
+                     type: 'select', options: [
+                       { value: 'bullish', label: 'Bullish' },
+                       { value: 'bearish', label: 'Bearish' },
+                       { value: 'any',     label: 'Any direction' },
+                     ] },
+      trendFilter: { label: 'Trend filter (close vs long EMA)', help: 'Only signal long when close is above the trend EMA, and short when below.', type: 'boolean' },
+      trendPeriod: { label: 'Trend EMA period', help: 'Long-term EMA used for the trend filter.', min: 20, max: 400 },
+    },
+  },
   volume_surge: {
     title: 'Volume Surge',
     summary:

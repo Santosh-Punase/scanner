@@ -129,7 +129,7 @@ async function handleScan(req, res) {
     // Pull params either from `params` object (POST) or remaining query keys (GET).
     let params = src.params || {};
     if (req.method === 'GET') {
-      const reserved = new Set(['strategy', 'limit', 'concurrency', 'symbols']);
+      const reserved = new Set(['strategy', 'limit', 'concurrency', 'symbols', 'interval']);
       params = {};
       for (const [k, v] of Object.entries(src)) {
         if (reserved.has(k)) continue;
@@ -143,6 +143,7 @@ async function handleScan(req, res) {
     const concurrency = src.concurrency
       ? Math.max(1, Math.min(20, parseInt(src.concurrency, 10)))
       : 8;
+    const interval = src.interval || '1d';
 
     let symbols;
     if (src.symbols) {
@@ -151,7 +152,7 @@ async function handleScan(req, res) {
         : String(src.symbols).split(',').map((s) => s.trim()).filter(Boolean);
     }
 
-    const result = await runScan({ strategy, params, limit, concurrency, symbols });
+    const result = await runScan({ strategy, params, limit, concurrency, symbols, interval });
     res.locals.scanResult = { matched: result.matched, scanned: result.scanned };
     res.json(result);
   } catch (err) {

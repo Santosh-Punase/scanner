@@ -7,6 +7,12 @@ const UNIVERSE_PRESETS = [
   { value: 2200, label: 'All NSE EQ (~3–6 min)' },
 ];
 
+const TIMEFRAMES = [
+  { value: '1d',  label: 'Daily',   hint: 'positional / swing (recommended)' },
+  { value: '1wk', label: 'Weekly',  hint: 'long-term trend' },
+  { value: '1mo', label: 'Monthly', hint: 'investing horizon' },
+];
+
 export default function ScanForm({
   strategies,
   strategyKey,
@@ -24,6 +30,8 @@ export default function ScanForm({
   setLimit,
   concurrency,
   setConcurrency,
+  interval,
+  setInterval,
   running,
   elapsed,
   onRun,
@@ -62,7 +70,19 @@ export default function ScanForm({
       <h2>2. Parameters</h2>
       <ParamFields strategyDef={strategyDef} meta={meta} params={params} setParam={setParam} />
 
-      <h2>3. Universe</h2>
+      <h2>3. Timeframe</h2>
+      <div className="field">
+        <select value={interval} onChange={(e) => setInterval(e.target.value)}>
+          {TIMEFRAMES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label} — {t.hint}</option>
+          ))}
+        </select>
+        <div className="help">
+          Choose the candle timeframe for the scan. Daily suits swing trades; weekly/monthly suit longer-term setups.
+        </div>
+      </div>
+
+      <h2>4. Universe</h2>
       <div className="seg">
         <button
           type="button"
